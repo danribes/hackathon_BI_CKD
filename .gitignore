@@ -1,6 +1,8 @@
 # Dependencies
 node_modules/
-claude-task-master/node_modules/
+
+# External repositories (can be re-cloned)
+claude-task-master/
 
 # Environment variables
 .env
