@@ -14,10 +14,16 @@ This project is an AI-powered clinical decision support tool designed for primar
 
 - **FHIR-Based Integration**: Connects to EHR systems via SMART on FHIR
 - **AI Risk Analysis**: Powered by Claude 3.5 Sonnet or GPT-4
+- **Automatic Risk Recalculation**: Event-driven system that recalculates risk when new clinical data enters the database
+- **Three-Phase CKD Protocol**: Comprehensive chronic kidney disease identification system
+  - Phase 1: Population-wide risk triage (Tier 1/2/3 classification)
+  - Phase 2: Active monitoring with automated test ordering (eGFR, uACR)
+  - Phase 3: Diagnostic confirmation (3-month rule) and stage-based management
 - **GDPR Compliant**: Pseudonymization, data minimization, comprehensive audit trails
 - **Clinical Workflow Integration**: Embedded directly in doctor's EHR interface
 - **Multi-Condition Support**: Diabetes complications, CKD progression, cardiovascular disease
-- **Population Health Dashboard**: Batch analysis for proactive patient screening
+- **Population Health Dashboard**: Batch analysis with "Scan All Patients" button
+- **Smart Notifications**: Real-time alerts when patient risk levels change
 
 ## Project Structure
 
@@ -26,7 +32,7 @@ This project is an AI-powered clinical decision support tool designed for primar
 ├── docs/
 │   └── prd.txt              # Comprehensive Product Requirements Document
 ├── tasks/
-│   └── tasks.json           # Detailed development tasks (25 major tasks)
+│   └── tasks.json           # Detailed development tasks (30 major tasks)
 ├── reports/                 # Analysis reports and documentation
 ├── templates/               # Document templates
 ├── config.json             # Task Master configuration
@@ -37,13 +43,22 @@ claude-task-master/         # Task management system (cloned repo)
 
 ## Task Breakdown
 
-The project is organized into **25 major tasks** across 4 phases:
+The project is organized into **30 major tasks** across 4 phases:
 
 ### Phase 1: MVP (Tasks 1-14)
-Foundation layer including FHIR integration, pseudonymization, AI risk analysis engine, basic UI, and pilot deployment in Sweden.
+Foundation layer including FHIR integration, pseudonymization, AI risk analysis engine, basic UI, automatic risk recalculation (polling-based), and pilot deployment in Sweden.
 
-### Phase 2: Enhanced Features (Tasks 15-19)
-Additional risk models (CKD, CVD), population health dashboard, trend visualizations, and Germany expansion.
+### Phase 2: Enhanced Features (Tasks 15-30)
+- **Automatic Risk Recalculation** (Tasks 15): Population health dashboard with batch scanning, background workers, event-driven processing
+- **Additional Risk Models** (Tasks 16-17): CKD progression, cardiovascular disease
+- **Trend Visualizations** (Task 18): Interactive graphs for eGFR, HbA1c, blood pressure
+- **Germany Integration** (Task 19): Telematikinfrastruktur, gematik certification
+- **Three-Phase CKD Protocol** (Tasks 26-30):
+  - Task 26: Population risk stratification (3-tier triage system)
+  - Task 27: Active screening and monitoring protocol
+  - Task 28: Diagnostic confirmation workflow (3-month rule)
+  - Task 29: Post-diagnosis management and referral system
+  - Task 30: Integration with automatic risk recalculation
 
 ### Phase 3: Multi-Country Expansion (Tasks 20-24)
 Explainable AI, local model deployment, clinical validation study, CE marking, and expansion to 5 EU countries.
