@@ -4,6 +4,7 @@ description: "Implementation tasks for Healthcare AI Clinical Data Analyzer"
 
 # Tasks: Healthcare AI Clinical Data Analyzer
 
+**Total Tasks**: 157 tasks across 10 phases
 **Input**: Product Requirements Document from `.taskmaster/docs/prd.txt`
 **Prerequisites**: PRD (complete), tasks.json (reference), architecture design
 
@@ -23,6 +24,72 @@ description: "Implementation tasks for Healthcare AI Clinical Data Analyzer"
 - **Database**: `database/migrations/`, `database/seeds/`
 - **Documentation**: `docs/`
 - Paths assume monorepo structure with separate backend/frontend
+
+---
+
+## 📋 Implementation Workflow (Follow for EVERY Task)
+
+**Before starting ANY task, follow this workflow:**
+
+### 1. Check Current Progress
+- Check `/web/.specify/memory/tasks.md` file to find the last task implemented
+- Identify which task you should work on next
+
+### 2. Implementation
+- Write the code for the implementation of the task
+- Follow the file path specified in the task description
+- **Use Tailwind CSS** for all CSS-related code (no custom CSS classes unless absolutely necessary)
+
+### 3. Testing
+- Write comprehensive test code for the implemented functionality
+- Tests should cover:
+  - Unit tests for individual functions/components
+  - Integration tests where applicable
+  - Edge cases and error handling
+
+### 4. Test Execution
+- Run the tests
+- Analyze any errors that occur
+- Fix all errors until tests pass
+
+### 5. Documentation (REQUIRED - Create 3 Log Files)
+
+All log files must be named with capital **T** + three-digit task number (e.g., **T001**, **T024**, **T156**)
+
+**a) Implementation Task Log**
+- **Location**: `/web/log_files/TXXX_TaskName_Log.md`
+- **Example**: `/web/log_files/T024_PatientFHIRFetcher_Log.md`
+- **Content**: Implementation details, decisions made, code structure
+
+**b) Test Log**
+- **Location**: `/web/log_tests/TXXX_TaskName_TestLog.md`
+- **Example**: `/web/log_tests/T024_PatientFHIRFetcher_TestLog.md`
+- **Content**: Test results, coverage, issues encountered and resolved
+
+**c) Learn/Guide File (Didactic Log)**
+- **Location**: `/web/log_learn/TXXX_TaskName_Guide.md`
+- **Example**: `/web/log_learn/T024_PatientFHIRFetcher_Guide.md`
+- **Content**: Explanation of what was developed, why this approach was taken, and how it works (educational format)
+
+### 6. Important Reminders
+
+⚠️ **Docker Environment**: This setup is containerized in Docker. There is NO need to install PostgreSQL or Redis locally - they run in containers via docker-compose.yml
+
+⚠️ **Tailwind CSS**: Use Tailwind utility classes for all styling. Do not create custom CSS files unless absolutely necessary.
+
+⚠️ **Update tasks.md**: After completing implementation, tests, and all log files:
+- Update the `/web/.specify/memory/tasks.md` file with implementation details
+- Cross off the completed task by changing `- [ ]` to `- [x]`
+
+### 7. Task Completion Checklist
+
+Before moving to the next task, verify:
+- [x] Code implemented in correct file path
+- [x] Tests written and passing
+- [x] Implementation log created (TXXX_TaskName_Log.md)
+- [x] Test log created (TXXX_TaskName_TestLog.md)
+- [x] Learn/guide file created (TXXX_TaskName_Guide.md)
+- [x] tasks.md updated and task marked as complete
 
 ---
 
@@ -80,10 +147,10 @@ description: "Implementation tasks for Healthcare AI Clinical Data Analyzer"
 - [ ] T026 [P] [US1] Create Condition FHIR resource fetcher for diagnoses in backend/src/fhir/condition-fetcher.ts
 - [ ] T027 [P] [US1] Create MedicationRequest FHIR resource fetcher in backend/src/fhir/medication-fetcher.ts
 - [ ] T028 [US1] Implement FHIR data aggregator service in backend/src/services/fhir-aggregator.ts (depends on T024-T027)
-- [ ] T029 [P] [US1] Implement AI prompt template for diabetes risk in backend/src/ai/prompts/diabetes-risk.ts
+- [ ] T029 [P] [US1] Implement AI prompt template for diabetes risk in backend/src/ai/prompts/diabetes-risk.ts (The prompt MUST be designed to gracefully handle null or undefined values for key inputs like HbA1c, eGFR, blood pressure. Instruct the AI to note missing critical data in its analysis and recommend ordering the missing tests)
 - [ ] T030 [P] [US1] Implement Claude API client in backend/src/ai/claude-client.ts
 - [ ] T031 [P] [US1] Implement OpenAI API client as fallback in backend/src/ai/openai-client.ts
-- [ ] T032 [US1] Implement AI processing service in backend/src/services/ai-service.ts (depends on T029-T031)
+- [ ] T032 [US1] Implement AI processing service in backend/src/services/ai-service.ts (depends on T029-T031). Implement primary/fallback logic: The service MUST try the primary model (Claude) first. On API failure (5xx error, timeout >10s), automatically retry with fallback model (GPT-4). If both models fail, return structured error to user with clear message
 - [ ] T033 [US1] Implement risk analysis API endpoint POST /api/analyze in backend/src/routes/analysis.ts
 - [ ] T034 [US1] Implement insights retrieval endpoint GET /api/insights/:patientToken in backend/src/routes/insights.ts
 - [ ] T035 [P] [US1] Create React component for Risk Analysis Button in frontend/src/components/RiskAnalysisButton.tsx
@@ -91,7 +158,7 @@ description: "Implementation tasks for Healthcare AI Clinical Data Analyzer"
 - [ ] T037 [P] [US1] Create React component for Color-Coded Risk Indicator in frontend/src/components/RiskIndicator.tsx
 - [ ] T038 [US1] Implement API client for risk analysis in frontend/src/api/analysis-client.ts
 - [ ] T039 [US1] Integrate SMART on FHIR app launch in frontend/src/fhir/smart-launch.ts
-- [ ] T040 [US1] Add validation for risk assessment results in backend/src/validators/risk-validator.ts
+- [ ] T040 [US1] Add validation for risk assessment results in backend/src/validators/risk-validator.ts. Check the inputs of the analysis. If critical data (e.g., eGFR, HbA1c) was missing, the validator MUST add warning flag ("⚠️ eGFR not available - limited analysis") and specific recommendation ("Order eGFR test to improve risk assessment accuracy") to the final API response
 - [ ] T041 [US1] Add error handling for FHIR API failures in backend/src/middleware/fhir-error-handler.ts
 - [ ] T042 [US1] Add audit logging for risk analysis requests in backend/src/routes/analysis.ts
 
@@ -294,6 +361,8 @@ description: "Implementation tasks for Healthcare AI Clinical Data Analyzer"
 - [ ] T153 [P] Set up automated backups for PostgreSQL database
 - [ ] T154 Final integration testing across all user stories
 - [ ] T155 Prepare MVP deployment to pilot hospital in Sweden
+- [ ] T156 [P] [FR-019] Implement data retention policy worker in backend/src/workers/retention-policy-worker.ts. Create scheduled background job (BullMQ repeatable job or cron) that queries risk_assessments and patients tables for records older than 72-hour (configurable) retention period. Implement soft delete or hard delete logic. Ensure job logs actions to audit trail (e.g., "Deleted data for patient token XXXXX"). GDPR Article 32 compliance requirement
+- [ ] T157 [P] [FR-021] Create and test air-gapped deployment package. Create docker-compose.airgapped.yml bundling NGINX-served frontend, backend, database, and local LLaMA model. Write test plan in docs/airgapped-test-plan.md. Execute test: Deploy stack on machine with network interface disabled and confirm all functionality (US1, US2) works correctly without internet access
 
 ---
 
@@ -408,20 +477,20 @@ With multiple developers:
 
 ## Timeline Estimates
 
-- **Phase 1 (Setup)**: 1 week
-- **Phase 2 (Foundational)**: 2-3 weeks (CRITICAL PATH)
-- **Phase 3 (US1 - Individual Risk Assessment)**: 3-4 weeks
-- **Phase 4 (US2 - Population Scanning)**: 2-3 weeks
-- **Phase 5 (US3 - Automatic Recalculation)**: 3-4 weeks
-- **Phase 6 (US4 - CKD Protocol)**: 4-5 weeks
-- **Phase 7 (US5 - Urine Analysis)**: 3-4 weeks
-- **Phase 8 (US6 - Country Integrations)**: 6-8 weeks (per country)
-- **Phase 9 (US7 - Explainable AI)**: 4-5 weeks
-- **Phase 10 (Polish)**: 2-3 weeks
+- **Phase 1 (Setup)**: 1 week (8 tasks)
+- **Phase 2 (Foundational)**: 2-3 weeks (15 tasks) ⚠️ CRITICAL PATH
+- **Phase 3 (US1 - Individual Risk Assessment)**: 3-4 weeks (19 tasks)
+- **Phase 4 (US2 - Population Scanning)**: 2-3 weeks (14 tasks)
+- **Phase 5 (US3 - Automatic Recalculation)**: 3-4 weeks (18 tasks)
+- **Phase 6 (US4 - CKD Protocol)**: 4-5 weeks (19 tasks)
+- **Phase 7 (US5 - Urine Analysis)**: 3-4 weeks (21 tasks)
+- **Phase 8 (US6 - Country Integrations)**: 6-8 weeks (14 tasks, per country)
+- **Phase 9 (US7 - Explainable AI)**: 4-5 weeks (12 tasks)
+- **Phase 10 (Polish)**: 2-3 weeks (17 tasks)
 
-**Total MVP (US1 + US2)**: 8-11 weeks
-**Total Enhanced (US1-US5)**: 20-26 weeks
-**Total Enterprise (US1-US7)**: 36-48 weeks
+**Total MVP (US1 + US2)**: 8-10 weeks (56 tasks: T001-T056)
+**Total Enhanced (US1-US5)**: 20-26 weeks (132 tasks: T001-T114 + T156)
+**Total Enterprise (US1-US7)**: 36-42 weeks (157 tasks: All tasks)
 
 ---
 
