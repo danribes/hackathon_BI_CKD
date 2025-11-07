@@ -1531,6 +1531,108 @@
         }
       ],
       "testStrategy": "End-to-end testing with 200 patients through full pipeline, verify seamless transitions between phases, measure time from risk detection to diagnosis"
+    },
+    {
+      "id": "31",
+      "title": "Implement urine analysis data integration following Minuteful Kidney protocol",
+      "description": "Build comprehensive integration with home-based urine testing systems (Healthy.io Minuteful Kidney) to automatically ingest uACR, albumin, and creatinine test results from smartphone-based testing into the clinical database following HL7 FHIR R4 standards and real-time processing protocols.",
+      "status": "pending",
+      "priority": "high",
+      "tags": ["urine-analysis", "lab-integration", "minuteful-kidney", "phase2", "data-ingestion"],
+      "dependencies": ["2", "4", "15", "27"],
+      "subtasks": [
+        {
+          "id": "31.1",
+          "title": "Design urine analysis database schema",
+          "description": "CREATE TABLE urine_tests (test_id UUID PRIMARY KEY, patient_token VARCHAR(255), session_id UUID, test_datetime TIMESTAMP, uacr_value NUMERIC(6,2), albumin_mg_l NUMERIC(6,2), creatinine_mg_dl NUMERIC(6,2), kit_batch_number VARCHAR(50), device_type VARCHAR(100), app_version VARCHAR(20), processing_status VARCHAR(20), ai_confidence_score NUMERIC(3,2), quality_score JSONB, created_at TIMESTAMP, updated_at TIMESTAMP); CREATE INDEX idx_patient_urine ON urine_tests(patient_token, test_datetime DESC);",
+          "status": "pending"
+        },
+        {
+          "id": "31.2",
+          "title": "Implement Healthy.io Minuteful Kidney API client",
+          "description": "Build API client for Healthy.io integration: Base URL https://api.minuteful.com/v2, OAuth 2.0 + JWT authentication, implement endpoints for patient management (GET/POST /patients), test results (GET /patients/{id}/results, POST /results), and webhook subscription for real-time notifications",
+          "status": "pending"
+        },
+        {
+          "id": "31.3",
+          "title": "Build FHIR Observation resource parser for urine tests",
+          "description": "Implement parser to extract uACR data from FHIR Observation resources: LOINC codes for uACR (9318-7), urine albumin (14958-3), urine creatinine (2161-8), map to internal database schema, handle unit conversions (mg/g, mg/L, mg/dL)",
+          "status": "pending"
+        },
+        {
+          "id": "31.4",
+          "title": "Implement real-time urine test data ingestion pipeline",
+          "description": "Build real-time processing pipeline: Subscribe to FHIR server webhooks for new Observation resources, receive encrypted JSON payloads (AES-256-GCM), validate digital signatures (SHA-256), decrypt and parse test data, store in PostgreSQL with <60 second latency, trigger automatic risk recalculation",
+          "status": "pending"
+        },
+        {
+          "id": "31.5",
+          "title": "Implement batch urine test data ingestion",
+          "description": "Build batch processing for bulk data imports: Support NDJSON bulk export format, scheduled daily import at 02:00 UTC, GPG decryption with healthcare provider private key, bulk insert with transaction support, conflict resolution for duplicate tests",
+          "status": "pending"
+        },
+        {
+          "id": "31.6",
+          "title": "Build uACR data validation and quality control",
+          "description": "Implement validation rules: Check uACR range (0-5000 mg/g), validate albumin (0-500 mg/L) and creatinine (0-500 mg/dL) ranges, flag outliers for review, validate kit expiration dates, check AI confidence scores (minimum 0.80), implement quality control flags for lighting/positioning scores",
+          "status": "pending"
+        },
+        {
+          "id": "31.7",
+          "title": "Implement SMART on FHIR authorization for urine data access",
+          "description": "Build SMART on FHIR authorization flow: Client registration (POST /auth/register), authorization request with scopes (patient/Observation.read, patient/DiagnosticReport.read), token exchange (POST /auth/token), resource access with Bearer tokens, implement refresh token rotation",
+          "status": "pending"
+        },
+        {
+          "id": "31.8",
+          "title": "Build urine test result notification system",
+          "description": "Implement automatic notifications for abnormal uACR results: Trigger alerts when uACR > 30 mg/g (microalbuminuria threshold), send WebSocket notifications to providers in real-time, create email digest for offline providers, link to CKD diagnostic confirmation workflow (Task 28), log all notifications in audit trail",
+          "status": "pending"
+        },
+        {
+          "id": "31.9",
+          "title": "Implement urine test trend analysis and visualization",
+          "description": "Build trend analysis for serial uACR measurements: Calculate eGFR slope from serial creatinine values, detect worsening albuminuria trends (>20% increase in 3 months), generate visual graphs (time series for uACR, albumin, creatinine), compare to KDIGO thresholds, predict progression risk",
+          "status": "pending"
+        },
+        {
+          "id": "31.10",
+          "title": "Build data transfer security protocols",
+          "description": "Implement security measures following Minuteful Kidney protocol: HTTPS/TLS 1.3 for all API communications, WebSocket Secure (WSS) for live monitoring, AES-256-GCM encryption for data at rest, column-level encryption for sensitive fields (patient identifiers, test results), implement certificate pinning for mobile app",
+          "status": "pending"
+        },
+        {
+          "id": "31.11",
+          "title": "Implement offline capability and sync mechanism",
+          "description": "Build offline data handling: Local encryption (AES-256) for tests captured offline, secure storage on device until network available, automatic sync when connectivity restored, conflict resolution for duplicate submissions, progress tracking with user notifications, retry mechanism with exponential backoff",
+          "status": "pending"
+        },
+        {
+          "id": "31.12",
+          "title": "Build integration with primary healthcare system databases",
+          "description": "Implement bidirectional sync with primary care databases: PostgreSQL 14 connection with SSL/TLS client certificates, real-time replication + daily snapshots, support for multiple connection protocols (Direct API, HL7 FHIR R4, Batch NDJSON export), implement ETL pipeline for legacy database formats, maintain data consistency across systems",
+          "status": "pending"
+        },
+        {
+          "id": "31.13",
+          "title": "Implement Apache Kafka stream processing for urine tests",
+          "description": "Build stream processing pipeline: Set up Kafka topics (urine-test-raw, urine-test-validated, urine-test-alerts), implement producer for incoming test data, build consumer for validation and enrichment, implement dead letter queue for failed processing, configure retention policies, enable real-time analytics",
+          "status": "pending"
+        },
+        {
+          "id": "31.14",
+          "title": "Build urine test audit logging and compliance tracking",
+          "description": "Implement comprehensive audit trail: Log all data access (who, what, when), track data modifications with before/after snapshots, record API calls with request/response payloads, implement immutable audit log storage, generate HIPAA-compliant audit reports, maintain 10-year retention for audit trails",
+          "status": "pending"
+        },
+        {
+          "id": "31.15",
+          "title": "Create urine test data API endpoints for third-party access",
+          "description": "Build RESTful API endpoints: GET /api/urine-tests/{patient_token} (retrieve patient's test history), POST /api/urine-tests (submit new test results), GET /api/urine-tests/{test_id}/images (retrieve test strip images), GET /api/urine-tests/analytics (aggregate statistics), implement rate limiting (1000 requests/hour per client), OAuth 2.0 authentication",
+          "status": "pending"
+        }
+      ],
+      "testStrategy": "End-to-end testing with 100 synthetic urine test submissions via Minuteful Kidney API, verify real-time processing (<60s latency), validate FHIR Observation resource creation, test batch import with 1000 records, verify integration with CKD diagnostic confirmation workflow, validate security protocols and encryption, test offline sync with network interruptions"
     }
   ]
 }
