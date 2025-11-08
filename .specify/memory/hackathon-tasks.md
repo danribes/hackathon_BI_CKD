@@ -182,10 +182,14 @@
   - **Logs Created**: Documented in git commit
   - **Completed**: 2025-11-08
 
-- [ ] H033 Risk analysis API endpoint (POST /api/analyze)
+- [x] **H033** Risk analysis API endpoint (POST /api/analyze)
   - **Corresponds to**: T033
   - **Time**: 20 minutes
   - **Deliverable**: API endpoint triggers AI analysis and returns results
+  - **Implementation**: Created backend/src/api/routes/analyze.ts (370 lines) - Complete REST API for risk analysis with 8 endpoints. Updated backend/src/index.ts to mount routes at /api/analyze and updated API info endpoint. Endpoints: POST /:patientId (single patient analysis with UUID validation), POST /batch (batch process up to 50 patients with array validation), POST /high-risk (Tier 3 patient processing), POST /tier/:tier (tier-based analysis, validates tier 1/2/3), GET /recent (recent analyses with limit max 100), GET /statistics (aggregate stats by risk level/tier), DELETE /cache (clear old analyses with olderThanHours param), GET /health (service health check). Request validation: UUID format for patient IDs, array validation for batch, MAX_BATCH_SIZE=50, tier must be 1/2/3, positive hours for cache deletion. Configuration support: storeResults, includePatientData, skipCache via request body with nullish coalescing defaults. Response codes: 200 (success), 400 (validation error), 404 (patient not found), 500 (internal error). Error handling: try-catch blocks, console.error logging, Error instanceof checks, detailed error messages. Integration: imports from riskProcessingService (H032), calls processPatientRiskAnalysis/Batch/HighRiskPatients/ByTier, comprehensive JSDoc documentation.
+  - **Tests**: T033_analyze_api_test.sh - 54/54 tests passed ✅ (100%). Categories: File existence (2), Route imports & setup (3), Core endpoints (8), Service integration (5), Request validation (7), Configuration handling (4), Response handling (6), Error handling (5), Query parameters (3), API documentation (4), Server integration (4), File quality (3).
+  - **Logs Created**: Documented in git commit
+  - **Completed**: 2025-11-08
 
 - [ ] H035 React: Risk Analysis Button component
   - **Corresponds to**: T035
@@ -247,18 +251,18 @@ When marking a task complete, use this format:
 ## Progress Summary
 
 **Total Tasks**: 19
-**Completed**: 15 ✅
+**Completed**: 16 ✅
 **In Progress**: 0
-**Remaining**: 4
+**Remaining**: 3
 
-**Estimated Time Remaining**: 8.8-10.8 hours
+**Estimated Time Remaining**: 8.3-10.3 hours
 
-**Progress**: 78.95% (15/19 tasks)
+**Progress**: 84.21% (16/19 tasks)
 
 ---
 
 ## Next Task
 
-**To Start**: H033 - Risk analysis API endpoint (POST /api/analyze)
-**Estimated Time**: 20 minutes
-**Note**: Create REST API endpoint that exposes the risk processing service. This endpoint will receive patient ID, call processPatientRiskAnalysis from riskProcessingService (H032), and return the AI-generated risk assessment. Will be consumed by React frontend (H035-H037).
+**To Start**: H035 - React: Risk Analysis Button component
+**Estimated Time**: 30 minutes
+**Note**: Create reusable React button component that triggers risk analysis. This will call the POST /api/analyze/:patientId endpoint (H033) and handle loading states, success/error feedback. Uses Tailwind CSS for styling, integrates with React state management.
