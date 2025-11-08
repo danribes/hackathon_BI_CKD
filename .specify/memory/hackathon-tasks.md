@@ -120,10 +120,17 @@
     - T009_PostgreSQLSetup_Guide.md (Healthcare database design, ICD-10 codes, CKD staging, indexes)
   - **Completed**: 2025-11-08
 
-- [ ] H012 Database connection from backend
+- [x] H012 Database connection from backend
   - **Corresponds to**: T012
   - **Time**: 20 minutes
   - **Deliverable**: Backend can connect to PostgreSQL
+  - **Implementation**: Installed pg (node-postgres) client library. Created database connection pool module (src/config/database.ts) with connection pooling, environment-based configuration, testConnection(), query(), getPoolStats(), and closePool() functions. Integrated into backend with /api/db/health and /api/db/test endpoints. Tests database connection on startup and closes pool on graceful shutdown. Pool configured with max 10 connections, 30s idle timeout, 5s connection timeout.
+  - **Tests**: Created and executed T012_database_connection_test.sh - all 25 tests passed ✅ (100% pass rate). Tests covered: dependencies (4), database module (10), backend integration (5), environment config (5), TypeScript compilation (1).
+  - **Logs Created**:
+    - T012_DatabaseConnection_Log.md (Implementation details, dependencies, integration, design decisions)
+    - T012_DatabaseConnection_TestLog.md (25 test cases, manual testing procedures, performance metrics)
+    - T012_DatabaseConnection_Guide.md (Educational guide on node-postgres, connection pooling, SQL injection prevention, error handling)
+  - **Completed**: 2025-11-08
 
 - [ ] H023 Environment configuration (.env files)
   - **Corresponds to**: T023
@@ -217,18 +224,18 @@ When marking a task complete, use this format:
 ## Progress Summary
 
 **Total Tasks**: 19
-**Completed**: 9 ✅
+**Completed**: 10 ✅
 **In Progress**: 0
-**Remaining**: 10
+**Remaining**: 9
 
-**Estimated Time Remaining**: 11.9-13.9 hours
+**Estimated Time Remaining**: 11.4-13.4 hours
 
-**Progress**: 47.37% (9/19 tasks)
+**Progress**: 52.63% (10/19 tasks)
 
 ---
 
 ## Next Task
 
-**To Start**: H012 - Database connection from backend
-**Estimated Time**: 20 minutes
-**Note**: Install pg client, create connection pool, and verify backend can connect to PostgreSQL. Phase H2 in progress!
+**To Start**: H023 - Environment configuration (.env files)
+**Estimated Time**: 15 minutes
+**Note**: Verify and complete environment configuration for all services. .env files already exist from H006, may just need verification/documentation. Phase H2 almost complete!
