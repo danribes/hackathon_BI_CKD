@@ -1,309 +1,463 @@
-# Healthcare AI Clinical Data Analyzer
+# Healthcare AI Clinical Data Analyzer - Hackathon Demo
 
 ## Overview
 
-This project is an AI-powered clinical decision support tool designed for primary care physicians in the European Union. The application analyzes patient clinical data from Electronic Health Records (EHR) and generates risk assessments and treatment recommendations while maintaining strict GDPR compliance.
+This is a **2-3 day hackathon demo** of an AI-powered clinical decision support tool. The application demonstrates how AI can analyze patient clinical data and generate risk assessments with treatment recommendations for chronic kidney disease (CKD).
+
+This hackathon version implements **18 essential tasks** to create a working demo, focusing on:
+- Full-stack TypeScript application (React + Express)
+- Docker containerization for easy deployment
+- AI-powered risk analysis using Claude API
+- Mock patient data with realistic clinical scenarios
 
 ## Project Status
 
-**Current Phase:** Planning & Documentation Complete
-**Implementation Roadmap:** 155 tasks across 10 phases
-**Target MVP Completion:** 8-10 weeks (US1 + US2)
-**Initial Pilot Country:** Sweden or Estonia
+**Current Phase:** Infrastructure Complete (Phase H1 Done ✅)
+**Hackathon Timeline:** 2-3 days (16 essential tasks)
+**Progress:** 5/18 tasks completed (27.78%)
+**Next Phase:** Database & AI features (H009-H037)
 
-## Key Features
+## Hackathon Demo Features
 
-- **FHIR-Based Integration**: Connects to EHR systems via SMART on FHIR
-- **AI Risk Analysis**: Powered by Claude 3.5 Sonnet, GPT-4 (fallback), or LLaMA 3.1 (air-gapped)
-- **Individual Patient Analysis (US1)**: Doctor triggers AI risk assessment during consultation (<2s response)
-- **Population Scanning (US2)**: "Scan All Patients" batch analysis with progress tracking
-- **Automatic Risk Recalculation (US3)**: Event-driven system recalculates risk when new data enters EHR
-- **Three-Phase CKD Protocol (US4)**: Comprehensive chronic kidney disease identification
-  - Tier 1/2/3 risk stratification using ICD-10 codes and risk factors
-  - Active monitoring with automated test ordering (eGFR, uACR)
-  - 3-month diagnostic confirmation tracker and KDIGO staging
-- **Urine Analysis Integration (US5)**: Smartphone-based uACR testing (Healthy.io Minuteful Kidney)
-  - Real-time data ingestion (<60 second latency)
-  - Apache Kafka stream processing for validation
-  - FHIR R4 Observation resources with LOINC codes (9318-7, 14958-3, 2161-8)
-- **Country-Specific Integrations (US6)**: Germany (gematik TI), France (DMP), Sweden (NPÖ), Estonia (X-Road)
-- **Explainable AI (US7)**: SHAP values, clinical guideline citations, counterfactual analysis
-- **GDPR Compliant**: Pseudonymization, data minimization, 72-hour retention policy, audit trails
-- **Real-Time Alerts**: WebSocket notifications when patient risk levels change
-- **Multi-Condition Support**: Diabetes complications, CKD progression, cardiovascular disease
+### ✅ Completed (Phase H1: Infrastructure)
+- **H001**: Monorepo project structure (backend, frontend, infrastructure)
+- **H002**: Backend initialized (Express + TypeScript + Anthropic SDK)
+- **H003**: Frontend initialized (React 19 + Vite + Tailwind CSS)
+- **H004**: Production-ready Dockerfiles (multi-stage builds, Alpine, non-root users)
+- **H005**: Docker Compose orchestration (postgres, backend, frontend with health checks)
+
+### 🚧 In Progress
+- **H006**: Documentation (README, CONTRIBUTING, .env.example)
+
+### 📋 Planned (Remaining 12 tasks)
+- **H009**: PostgreSQL with 5 mock patients (realistic CKD data)
+- **H012**: Database connection from backend
+- **H024-H025**: Mock patient & clinical data services
+- **H030**: Claude AI integration for risk analysis
+- **H032-H033**: AI processing service + API endpoint
+- **H035-H037**: React components (Risk Analysis Button, Assessment Display, Risk Indicator)
+
+## What This Demo Shows
+
+By the end of the hackathon, you'll have a working application that:
+1. ✅ **Runs with one command**: `docker-compose up` starts everything
+2. 🎯 **AI Risk Analysis**: Click button → Claude analyzes patient data → Returns risk assessment
+3. 📊 **Visual Risk Indicators**: Color-coded risk levels (low/medium/high)
+4. 🏥 **Realistic Mock Data**: 5 patients with clinical observations and conditions
+5. 🐳 **Production-Ready**: Containerized, health checks, proper error handling
 
 ## Project Structure
 
 ```
 /home/user/hackathon_BI_CKD/
-├── spec.md                          # Feature specification (7 user stories)
-├── plan.md                          # Technical implementation plan
-├── tasks.md                         # 155 implementation tasks across 10 phases
-├── presentation.html                # Visual slide deck (reveal.js)
-├── docs/
-│   ├── technical-decision-record.md # Architecture rationale (React vs Next.js, Docker)
-│   ├── smart-on-fhir-technical-deep-dive.md # OAuth2 flow, SSR incompatibility
-│   └── README.md                    # This file
-├── .taskmaster/
-│   ├── docs/
-│   │   └── prd.txt                  # Product Requirements Document
-│   └── tasks/
-│       └── tasks.json               # Detailed task breakdown (legacy format)
-└── claude-task-master/              # Task management system (cloned repo)
+├── backend/                      # Express + TypeScript API
+│   ├── src/
+│   │   ├── index.ts             # Server entry point
+│   │   ├── api/                 # API routes (to be added)
+│   │   ├── services/            # Business logic (AI, DB)
+│   │   ├── models/              # Database models
+│   │   ├── ai/                  # Claude integration
+│   │   ├── config/              # Configuration
+│   │   ├── types/               # TypeScript types
+│   │   └── middleware/          # Express middleware
+│   ├── Dockerfile               # Multi-stage production build
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── frontend/                    # React + Vite + Tailwind
+│   ├── src/
+│   │   ├── App.tsx              # Main app component
+│   │   ├── main.tsx             # Entry point
+│   │   ├── components/          # React components
+│   │   ├── pages/               # Page components
+│   │   ├── api/                 # API client
+│   │   ├── hooks/               # Custom hooks
+│   │   ├── services/            # Frontend services
+│   │   ├── types/               # TypeScript types
+│   │   └── styles/              # Global styles
+│   ├── Dockerfile               # Multi-stage build + nginx
+│   ├── nginx.conf               # nginx config for SPA
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.js
+│
+├── infrastructure/
+│   └── postgres/
+│       └── init.sql             # Database initialization
+│
+├── tests/                       # Test scripts
+│   ├── T001_structure_test.sh   # H001 tests
+│   ├── T002_backend_test.sh     # H002 tests
+│   ├── T003_frontend_test.sh    # H003 tests
+│   ├── T004_dockerfiles_test.sh # H004 tests
+│   └── T005_dockercompose_test.sh # H005 tests
+│
+├── log_files/                   # Implementation logs
+│   ├── T001_MonorepoSetup_Log.md
+│   ├── T002_BackendInit_Log.md
+│   ├── T003_FrontendInit_Log.md
+│   ├── T004_DockerFiles_Log.md
+│   └── T005_DockerCompose_Log.md
+│
+├── log_tests/                   # Test result logs
+│   ├── T001_MonorepoSetup_TestLog.md
+│   ├── T002_BackendInit_TestLog.md
+│   ├── T003_FrontendInit_TestLog.md
+│   ├── T004_DockerFiles_TestLog.md
+│   └── T005_DockerCompose_TestLog.md
+│
+├── log_learn/                   # Educational guides
+│   ├── T001_MonorepoSetup_Guide.md
+│   ├── T002_BackendInit_Guide.md
+│   ├── T003_FrontendInit_Guide.md
+│   ├── T004_DockerFiles_Guide.md
+│   └── T005_DockerCompose_Guide.md
+│
+├── .specify/                    # Hackathon planning
+│   └── memory/
+│       ├── hackathon-tasks.md   # 18 hackathon tasks
+│       └── hackathon-implementation-plan.md
+│
+├── docker-compose.yml           # Production orchestration
+├── docker-compose.dev.yml       # Development overrides
+├── .gitignore
+└── README.md                    # This file
 ```
 
-## Task Breakdown
+## Hackathon Task Breakdown
 
-The project is organized into **155 tasks** across **10 phases**, grouped by **7 user stories**:
+The hackathon demo has **18 tasks** organized into **3 phases**:
 
-### Phase 1: Setup (8 tasks, ~1 week)
-Project initialization: monorepo structure, TypeScript/React/Express setup, Docker, Git, CI/CD pipeline.
+### ✅ Phase H1: Project Setup (5 tasks - ~3 hours) - COMPLETE
 
-### Phase 2: Foundational (15 tasks, ~2-3 weeks) ⚠️ CRITICAL PATH
-Core infrastructure that **blocks all user stories**:
-- PostgreSQL database with audit_logs and risk_assessments schemas
-- HAPI FHIR client for EHR integration
-- Pseudonymization service (SHA-256 hashing for GDPR compliance)
-- OAuth2 authentication middleware
-- Audit logging service (10-year retention)
-- Security headers, CORS, error handling
+| Task | Description | Status | Time | Tests |
+|------|-------------|--------|------|-------|
+| H001 | Monorepo structure | ✅ Complete | 20 min | 25/25 passed |
+| H002 | Backend (Express + TypeScript) | ✅ Complete | 30 min | 12/12 passed |
+| H003 | Frontend (React + Vite + Tailwind) | ✅ Complete | 30 min | 18/18 passed |
+| H004 | Dockerfiles (backend + frontend) | ✅ Complete | 30 min | 20/20 passed |
+| H005 | Docker Compose orchestration | ✅ Complete | 40 min | 22/22 passed |
 
-### Phase 3: User Story 1 - AI Risk Assessment (19 tasks, ~3-4 weeks) 🎯 MVP
-**Goal**: Doctor clicks "AI Risk Analysis" button, receives risk assessment in <2 seconds
+**Results**: Infrastructure ready, 100% test pass rate (97 automated tests)
 
-**Tasks**: FHIR resource fetchers (Patient, Observation, Condition, MedicationRequest), AI processing service (Claude/GPT-4), risk analysis API endpoints, React components (Risk Score, Recommendations, Trend Graphs), SMART on FHIR app launch
+### 🚧 Phase H2: Database & Config (3 tasks - ~2 hours)
 
-### Phase 4: User Story 2 - Population Scanning (14 tasks, ~2-3 weeks) 🎯 MVP
-**Goal**: Doctor clicks "Scan All My Patients" button, receives prioritized high-risk list
+| Task | Description | Status | Time | Deliverable |
+|------|-------------|--------|------|-------------|
+| H006 | README & documentation | 🚧 In Progress | 20 min | This file |
+| H009 | PostgreSQL with 5 mock patients | 📋 Planned | 30 min | Realistic CKD data |
+| H012 | Database connection | 📋 Planned | 20 min | Backend connects to DB |
 
-**Tasks**: Background job queue (Bull/BullMQ), batch scan service, scan job processor worker, scan status API, Population Health Dashboard, Progress Indicator component, sortable patient risk list
+### 📋 Phase H3: Core Demo Features (8 tasks - ~6 hours)
 
-**✅ MVP Complete**: US1 + US2 functional, ready for pilot deployment
+| Task | Description | Time | Deliverable |
+|------|-------------|------|-------------|
+| H024 | Mock Patient data service | 30 min | Patient API endpoints |
+| H025 | Mock Observation data service | 30 min | Lab results API |
+| H030 | Claude API client | 40 min | Real AI integration |
+| H032 | AI processing service | 30 min | Orchestrate data + AI |
+| H033 | Risk analysis API endpoint | 20 min | POST /api/analyze |
+| H035 | Risk Analysis Button component | 30 min | Loading states |
+| H036 | Risk Assessment Display | 60 min | Full results UI |
+| H037 | Color-Coded Risk Indicator | 20 min | Green/yellow/red |
 
----
+**Timeline**: 13-15 hours remaining (1.5-2 days)
 
-### Phase 5: User Story 3 - Automatic Recalculation (18 tasks, ~3-4 weeks)
-**Goal**: New lab result triggers automatic risk recalculation and real-time alert (<60s)
-
-**Tasks**: Redis job queue, FHIR webhook subscription, event processors (Observation/Condition/MedicationRequest), WebSocket server (Socket.io), notification service, Alerts Dashboard, Alert Badge component
-
-### Phase 6: User Story 4 - CKD Protocol (19 tasks, ~4-5 weeks)
-**Goal**: Three-phase CKD patient identification with tier stratification and 3-month confirmation
-
-**Tasks**: CKD risk tiers database schema, three-tier risk stratification algorithm, Tier 2/3 detection (ICD-10 codes), active monitoring service, baseline test ordering (eGFR + uACR), abnormal result detection, 3-month confirmation tracker, KDIGO staging calculator, nephrology referral trigger
-
-### Phase 7: User Story 5 - Urine Analysis (21 tasks, ~3-4 weeks)
-**Goal**: Smartphone uACR test data ingested in <60 seconds, abnormal results trigger alerts
-
-**Tasks**: Urine tests database schema, Healthy.io Minuteful Kidney API client, FHIR Observation parsers (LOINC 9318-7/14958-3/2161-8), real-time ingestion pipeline, batch NDJSON import, Apache Kafka topics setup, Kafka producer/consumer, uACR validation (0-5000 mg/g range), uACR trend analysis, offline sync mechanism
-
-### Phase 8: User Story 6 - Country Integrations (14 tasks, ~6-8 weeks)
-**Goal**: Deploy in Germany, France, Sweden, Estonia with country-specific compliance
-
-**Tasks**:
-- 🇩🇪 Germany: eHBA authentication, gematik TI connector
-- 🇫🇷 France: DMP API client, ASIP Santé compliance
-- 🇸🇪 Sweden: NPÖ/Inera API, BankID authentication
-- 🇪🇪 Estonia: X-Road integration, eID authentication
-- Country detection/routing service, country-specific config files
-
-### Phase 9: User Story 7 - Explainable AI (12 tasks, ~4-5 weeks)
-**Goal**: AI recommendations display step-by-step reasoning with clinical guideline references
-
-**Tasks**: AI explanation generator, SHAP value calculator, medical guideline reference database, guideline citation service, local LLaMA 3.1 deployment, model comparison service, clinical validation study protocol, CE marking documentation
-
-### Phase 10: Polish & Deployment (15 tasks, ~2-3 weeks)
-**Goal**: Production-ready deployment with full compliance and monitoring
-
-**Tasks**: API documentation (OpenAPI/Swagger), user manual, deployment guide, performance monitoring (New Relic/DataDog), error tracking (Sentry), security hardening (penetration testing), GDPR compliance audit, accessibility audit (WCAG 2.1 AA), data retention policy worker, rate limiting/DDoS protection, automated PostgreSQL backups, air-gapped deployment package, final integration testing, MVP pilot deployment
-
----
-
-## Timeline Estimates
-
-| Milestone | Tasks | Duration | Cumulative |
-|-----------|-------|----------|------------|
-| **MVP (US1 + US2)** | T001-T056 (56 tasks) | 8-10 weeks | Week 10 |
-| **Enhanced (+ US3-US5)** | T057-T114 (58 tasks) | 12-16 weeks | Week 26 |
-| **Enterprise (+ US6-US7)** | T115-T140 (26 tasks) | 10-13 weeks | Week 39 |
-| **Production Ready** | T141-T157 (17 tasks) | 2-3 weeks | Week 42 |
-
-**Total**: 36-42 weeks for full enterprise product
-**MVP**: 8-10 weeks for pilot deployment
-
-## Technical Architecture
+## Tech Stack
 
 ### Frontend
-- **Framework**: React 18 + TypeScript 5
-- **Build Tool**: Vite 5
-- **State Management**: TanStack Query (React Query v5)
-- **UI**: Tailwind CSS 3, Recharts 2 (visualizations)
-- **Real-Time**: Socket.io-client 4 (WebSocket)
-- **EHR Integration**: SMART on FHIR client (fhirclient.js)
+- **React 19.0.0** - Latest UI framework with improved hooks
+- **Vite 6.0.7** - Lightning-fast dev server and build tool
+- **TypeScript 5.9.3** - Type safety with strict mode
+- **Tailwind CSS 3.4.17** - Utility-first styling
+- **nginx 1.25-alpine** - Production static file serving
 
-**Why React SPA (not Next.js)?** SMART on FHIR requires client-side OAuth2 redirect flow in iframe. SSR frameworks break due to: OAuth2 cookies inaccessible on server, CSP blocks dynamic chunks, CORS violations. See `docs/smart-on-fhir-technical-deep-dive.md` for details.
+**Build Output**: 403 KB JS, 10 KB CSS (gzipped to 119 KB total)
 
 ### Backend
-- **Runtime**: Node.js 20 LTS + Express.js 4
-- **Language**: TypeScript 5
-- **FHIR Client**: HAPI FHIR Client (TypeScript)
-- **Job Queue**: Bull/BullMQ (Redis-backed)
-- **WebSocket**: Socket.io 4
-- **Streaming**: Apache Kafka 3.5+ (Phase 7 - US5)
+- **Node.js 20 LTS** - Long-term support runtime
+- **Express 5.1.0** - Web framework
+- **TypeScript 5.9.3** - Strict type checking
+- **@anthropic-ai/sdk** - Claude AI integration
+- **CORS** - Cross-origin resource sharing
+- **pg** - PostgreSQL client (to be added in H012)
 
-**Why Express.js (not FastAPI)?** TypeScript consistency across stack, mature FHIR ecosystem in Node.js, hospital IT familiarity. See `docs/technical-decision-record.md` for rationale.
+**Production Image**: 150 MB (70% smaller than development)
 
-### Database & Infrastructure
-- **PostgreSQL 14+**: Audit logs (10-year retention), risk assessments (2-year retention), urine tests (7-year retention)
-- **Redis 7**: FHIR data caching (5-min TTL), background job queue, WebSocket sessions
-- **Apache Kafka**: Event streaming for urine test data (Phase 7+)
-- **Deployment**: Docker + Docker Compose (simple hospital IT deployment)
-- **Hosting**: EU cloud (AWS eu-central-1, Azure westeurope, GCP europe-west1) or on-premise
+### Database
+- **PostgreSQL 16-alpine** - Lightweight database (~80 MB vs ~300 MB)
+- **uuid-ossp extension** - UUID generation
+- **UTC timezone** - Consistent timestamps
 
-### AI Models
-- **Primary**: Claude 3.5 Sonnet (Anthropic API)
-- **Fallback**: GPT-4 (Azure OpenAI)
-- **Air-Gapped**: LLaMA 3.1 70B (local inference)
+**Data Persistence**: Named volume survives container restarts
 
-## Compliance & Security
+### Infrastructure
+- **Docker 24+** - Containerization
+- **Docker Compose 2.20+** - Multi-container orchestration
+- **Multi-stage builds** - Optimized image sizes
+- **Health checks** - Automatic dependency management
+- **Custom bridge network** - Service isolation
 
-### GDPR Compliance
-- **Legal Basis**: Article 9(2)(h) - Processing necessary for healthcare provision
-- **Pseudonymization**: SHA-256 hashing of patient identifiers before AI processing
-- **Data Minimization**: Only fetch necessary FHIR resources (Patient, Observation, Condition, MedicationRequest)
-- **Retention Policy**: Patient data deleted within 72 hours post-analysis (configurable)
-- **Audit Trails**: Immutable logs with 10-year retention (medical record requirement)
-- **Right to Erasure**: Purge all data for a given patient token on request
-- **DPIA**: Data Protection Impact Assessment documentation (T151)
+**Startup Time**: ~45 seconds from cold start, ~10 seconds with cache
 
-### Security Measures
-- **Encryption**: TLS 1.3 in transit, AES-256 at rest
-- **Authentication**: OAuth2 via SMART on FHIR (leverages EHR authentication)
-- **Secrets Management**: AWS Secrets Manager or HashiCorp Vault
-- **Rate Limiting**: API Gateway (Kong or AWS API Gateway)
-- **Penetration Testing**: Annual third-party security audits
-- **ISO 27001**: Certified data center requirement
+## Security Features (Implemented)
 
-### Medical Device Compliance
-- **Classification**: Class I medical device (decision support tool)
-- **CE Marking**: Required for EU market (clinical validation study, technical documentation)
-- **Clinical Validation**: Retrospective study with 1000+ patients (Phase 9 - US7)
+### Docker Security
+- ✅ **Non-root users**: Containers run as nodejs:1001 and nginx-app:1001
+- ✅ **Read-only volumes**: Source code mounted read-only in development
+- ✅ **Health checks**: Automatic restart on service failure
+- ✅ **Network isolation**: Custom bridge network for inter-service communication
+- ✅ **Secret injection**: API keys via environment variables (not committed)
 
-## Country-Specific Integrations
+### Code Quality
+- ✅ **TypeScript strict mode**: Catch errors at compile time
+- ✅ **CORS configured**: Backend only accepts requests from frontend
+- ✅ **Error handling**: Global error handlers in Express
+- ✅ **Input validation**: (To be added in H024-H033)
 
-| Country | Authentication | API | Compliance | Implementation |
-|---------|---------------|-----|------------|----------------|
-| 🇸🇪 Sweden | BankID | NPÖ/Inera API | Patient Data Act (2008:355) | T121-T122 (Phase 8) |
-| 🇪🇪 Estonia | eID | X-Road | eHealth Record Act | T123-T125 (Phase 8) |
-| 🇩🇪 Germany | eHBA | gematik TI | MDR, gematik certification | T115-T117 (Phase 8) |
-| 🇫🇷 France | ASIP Santé | DMP API | SecNumCloud, HDS certification | T118-T120 (Phase 8) |
+### Hackathon Scope
+This demo focuses on functionality. Production deployment would add:
+- HTTPS/TLS encryption
+- Authentication/authorization
+- Rate limiting
+- GDPR compliance (data retention, audit logs)
+- Penetration testing
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-- Node.js 20 LTS
-- Docker 24+ & Docker Compose 2.20+
-- Git
-- API Keys: Anthropic (Claude) or Azure OpenAI (GPT-4)
+- **Docker 24+** and **Docker Compose 2.20+** (required)
+- **Git** (for cloning the repository)
+- **Anthropic API Key** (sign up at https://console.anthropic.com)
 
-### View Implementation Plan
+No Node.js installation needed - everything runs in containers!
 
-**Slide Deck**: Open `presentation.html` in browser for visual overview of all 155 tasks
+### 1. Clone Repository
 
-**Detailed Specification**: See `spec.md` for 7 user stories with acceptance criteria
+```bash
+git clone <repository-url>
+cd hackathon_BI_CKD
+```
 
-**Technical Plan**: See `plan.md` for architecture, project structure, risk mitigation
+### 2. Set Environment Variables
 
-**Task List**: See `tasks.md` for granular task breakdown with dependencies
+Create `.env` file in project root:
 
-### Development Workflow
+```bash
+ANTHROPIC_API_KEY=sk-ant-api03-...
+```
 
-1. **Start with MVP**: Complete Phase 1 (Setup) → Phase 2 (Foundation) → Phase 3 (US1) → Phase 4 (US2)
-2. **Validate independently**: Test each user story independently before proceeding
-3. **Follow dependencies**: Phase 2 blocks all user stories. US1 must complete before US7.
-4. **Parallel opportunities**: Tasks marked `[P]` in `tasks.md` can run in parallel
-5. **Security-first**: Implement pseudonymization (T015-T016) and audit logging (T018) before any AI processing
+### 3. Start All Services
 
-## Documentation
+```bash
+# Production mode (nginx serving built frontend)
+docker-compose up -d
 
-| File | Purpose |
-|------|---------|
-| `spec.md` | Feature specification with 7 user stories (US1-US7) |
-| `plan.md` | Technical implementation plan, architecture, risk mitigation |
-| `tasks.md` | 155 implementation tasks across 10 phases |
-| `presentation.html` | Visual slide deck (reveal.js) for stakeholder presentations |
-| `docs/technical-decision-record.md` | Rationale for React, Docker, Express.js, monorepo |
-| `docs/smart-on-fhir-technical-deep-dive.md` | Why SSR (Next.js) is incompatible with SMART on FHIR |
-| `.taskmaster/docs/prd.txt` | Original Product Requirements Document |
+# Development mode (hot reload)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
 
-## Roadmap
+### 4. Access Application
 
-| Phase | Timeline | User Stories | Key Deliverables |
-|-------|----------|--------------|------------------|
-| **MVP** | Weeks 1-10 | US1 + US2 | Individual risk analysis, population scanning, 5-10 pilot doctors in Sweden |
-| **Enhanced** | Weeks 11-26 | + US3 + US4 + US5 | Automatic recalculation, CKD protocol, urine analysis, 50+ doctors |
-| **Enterprise** | Weeks 27-39 | + US6 + US7 | Multi-country (Germany, France, Sweden, Estonia), explainable AI, 500+ doctors |
-| **Production** | Weeks 40-42 | Polish | GDPR audit, CE marking, production deployment |
+- **Frontend**: http://localhost:8080 (production) or http://localhost:5173 (dev)
+- **Backend API**: http://localhost:3000
+- **Health Check**: http://localhost:3000/health
+- **PostgreSQL**: localhost:5432 (user: healthcare_user, password: healthcare_pass)
 
-## Success Criteria
+### 5. Stop Services
 
-### MVP (US1 + US2)
-- ✅ 5-10 pilot doctors successfully using the app
-- ✅ <2 second response time for individual risk analysis (US1)
-- ✅ <5 minutes for 500-patient batch scan (US2)
-- ✅ Zero GDPR violations or data breaches
-- ✅ 70%+ positive feedback from pilot users
-- ✅ SMART on FHIR app launches from Epic/Cerner EHR
+```bash
+# Stop containers (preserves data)
+docker-compose down
 
-### Enhanced Product (US1-US5)
-- ✅ 50+ doctors across 2 countries
-- ✅ <60 seconds automatic risk recalculation latency (US3)
-- ✅ CKD protocol identifies Tier 3 patients (US4)
-- ✅ Urine test data ingestion <60 seconds (US5)
-- ✅ 3 distinct clinical risk models operational (diabetes, CKD, CVD)
+# Stop and remove data volumes (⚠️ destroys database)
+docker-compose down -v
+```
 
-### Full Product (US1-US7)
-- ✅ 500+ doctors across 5 EU countries
-- ✅ Published clinical validation study (US7)
-- ✅ CE marking obtained
-- ✅ 99.5% uptime
-- ✅ Air-gapped deployment validated (T157)
+## Development Workflow
 
-## Critical Requirements
+### Hot Reload Development
 
-The review identified these **critical gaps** now addressed:
+```bash
+# Start in development mode
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
-1. **✅ T156**: Data retention policy worker - Implements 72-hour GDPR deletion (FR-019)
-2. **✅ T032 (expanded)**: AI processing service with explicit primary/fallback logic (Claude → GPT-4)
-3. **✅ T029 & T040 (expanded)**: Incomplete patient data handling with ⚠️ flags and recommendations
-4. **✅ T157**: Air-gapped deployment package testing and validation (FR-021)
-5. **✅ MVP scope corrected**: US1 + US2 (both P1), not US1 only
+# Edit files in backend/src or frontend/src
+# Changes auto-reload in containers
 
-## Contributing
+# View logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
 
-This project follows the implementation plan in `tasks.md`. Tasks are grouped by user story for independent development:
+### Running Tests
 
-- **Team A**: Can work on US1 (Individual Risk Assessment)
-- **Team B**: Can work on US2 (Population Scanning) in parallel
-- **After MVP**: Teams can tackle US3-US5 independently
+```bash
+# Run all test scripts
+bash tests/T001_structure_test.sh    # Monorepo structure
+bash tests/T002_backend_test.sh      # Backend initialization
+bash tests/T003_frontend_test.sh     # Frontend initialization
+bash tests/T004_dockerfiles_test.sh  # Docker configuration
+bash tests/T005_dockercompose_test.sh # Docker Compose
 
-Each user story has clear acceptance criteria in `spec.md` for independent testing.
+# All tests: 97 automated tests (100% pass rate)
+```
+
+### Database Access
+
+```bash
+# Connect to PostgreSQL shell
+docker-compose exec postgres psql -U healthcare_user -d healthcare_ai_db
+
+# Run SQL queries
+# healthcare_ai_db=# SELECT * FROM patients;
+
+# Exit shell
+# healthcare_ai_db=# \q
+```
+
+### Rebuilding After Changes
+
+```bash
+# Rebuild specific service
+docker-compose up -d --build backend
+
+# Rebuild all services
+docker-compose up -d --build
+
+# Force clean rebuild (no cache)
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+## Project Documentation
+
+### Implementation Logs (log_files/)
+Each completed task has detailed implementation documentation:
+- **T001_MonorepoSetup_Log.md**: Monorepo structure design decisions
+- **T002_BackendInit_Log.md**: Express + TypeScript setup
+- **T003_FrontendInit_Log.md**: React + Vite + Tailwind configuration
+- **T004_DockerFiles_Log.md**: Multi-stage Docker builds
+- **T005_DockerCompose_Log.md**: Service orchestration
+
+### Test Logs (log_tests/)
+Comprehensive test results with 100% pass rates:
+- **T001-T005_TestLog.md**: 97 automated tests total
+
+### Learning Guides (log_learn/)
+Educational resources for each technology:
+- **T001_MonorepoSetup_Guide.md**: Monorepo architecture patterns
+- **T002_BackendInit_Guide.md**: Express.js, TypeScript, middleware
+- **T003_FrontendInit_Guide.md**: React 19, Vite, Tailwind best practices
+- **T004_DockerFiles_Guide.md**: Docker optimization techniques
+- **T005_DockerCompose_Guide.md**: Container orchestration
+
+### Task Planning
+- **.specify/memory/hackathon-tasks.md**: 18-task breakdown with progress tracking
+- **.specify/memory/hackathon-implementation-plan.md**: Detailed implementation steps
+
+## API Endpoints (To Be Implemented)
+
+### Current (H005 - Completed)
+```
+GET  /health              - Health check endpoint
+GET  /api/info            - API version information
+```
+
+### Planned (H024-H033)
+```
+GET  /api/patients        - List all patients
+GET  /api/patients/:id    - Get patient details
+GET  /api/patients/:id/observations - Get patient lab results
+POST /api/analyze         - Trigger AI risk analysis
+```
+
+## Troubleshooting
+
+### Service Won't Start
+```bash
+# Check service logs
+docker-compose logs backend
+docker-compose logs postgres
+
+# Restart specific service
+docker-compose restart backend
+
+# Force rebuild
+docker-compose up -d --build backend
+```
+
+### Database Connection Errors
+```bash
+# Check if postgres is healthy
+docker-compose ps
+
+# Verify postgres is running
+docker-compose exec postgres pg_isready -U healthcare_user
+
+# Check database exists
+docker-compose exec postgres psql -U healthcare_user -l
+```
+
+### Frontend Can't Reach Backend
+```bash
+# Verify backend is running
+curl http://localhost:3000/health
+
+# Check CORS configuration in backend/src/index.ts
+# Should allow http://localhost:8080 and http://localhost:5173
+```
+
+### Hot Reload Not Working
+```bash
+# Make sure using dev compose file
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+# Check volume mounts
+docker-compose exec backend ls -la /app/src
+docker-compose exec frontend ls -la /app/src
+
+# Restart services
+docker-compose restart backend frontend
+```
+
+## Success Criteria (Hackathon Demo)
+
+By end of hackathon, the demo should demonstrate:
+
+1. ✅ **One-command startup**: `docker-compose up` starts everything
+2. 🎯 **AI Integration**: Click button → AI analyzes mock patient → Returns risk assessment
+3. 📊 **Visual UI**: Color-coded risk levels, recommendations displayed
+4. 🏥 **Mock Data**: 5 patients with realistic CKD clinical data
+5. 🐳 **Production-Ready**: Containerized, health checks, proper error handling
+6. 📝 **Documentation**: README, setup guide, troubleshooting
+
+**Demo Timeline**: 2-3 days (18 tasks, ~16 hours)
+
+## Next Steps
+
+After completing the hackathon demo (H001-H037), the project can expand to:
+- Authentication & authorization
+- Real FHIR integration (SMART on FHIR)
+- Multiple clinical conditions (diabetes, CVD)
+- Population health scanning
+- GDPR compliance features
+- Multi-country deployments
+
+See the original project plan for full 155-task roadmap.
 
 ## License
 
-This project contains proprietary code for healthcare AI clinical data analysis. All rights reserved.
-
-## Contributors
-
-- **Development Team**: [Your Team]
-- **Medical Advisors**: [TBD - Nephrologist, Endocrinologist, Cardiologist]
-- **Compliance Consultants**: [TBD - GDPR Expert, Medical Device Regulatory Expert]
+This project is a hackathon demonstration. For production use, consult with legal and compliance teams.
 
 ## Contact
 
-For questions or collaboration inquiries, please contact: [Your Contact Info]
+For questions about this hackathon demo:
+- Review implementation logs in `log_files/`
+- Check test results in `log_tests/`
+- Consult learning guides in `log_learn/`
 
 ---
 
-**⚠️ Important**: This is a healthcare AI project dealing with sensitive medical data. All development must follow strict security, privacy, and compliance guidelines outlined in the PRD and technical documentation.
+**Built for Hackathon BI CKD** - A 2-3 day demonstration of AI-powered clinical decision support
