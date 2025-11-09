@@ -69,19 +69,26 @@ export function assessPatientRisk(patient: PatientListItem): HighRiskPatientAsse
   const alerts: RiskAlert[] = [];
   let severity_score = 0;
 
-  // Extract key values
-  const eGFR = patient.latest_observations?.eGFR || 0;
+  // Helper function to safely convert to number
+  const toNumber = (value: number | string | undefined): number => {
+    if (value === undefined || value === null) return 0;
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return isNaN(num) ? 0 : num;
+  };
+
+  // Extract key values and ensure they are numbers
+  const eGFR = toNumber(patient.latest_observations?.eGFR);
   const eGFRTrend = patient.latest_observations?.eGFR_trend || 'stable';
-  const eGFRChange = patient.latest_observations?.eGFR_change || 0;
-  const uACR = patient.latest_observations?.uACR || 0;
+  const eGFRChange = toNumber(patient.latest_observations?.eGFR_change);
+  const uACR = toNumber(patient.latest_observations?.uACR);
   const proteinuriaCategory = patient.latest_observations?.proteinuria_category;
-  const systolicBP = patient.latest_observations?.blood_pressure?.systolic || 0;
-  const diastolicBP = patient.latest_observations?.blood_pressure?.diastolic || 0;
-  const hba1c = patient.latest_observations?.HbA1c || 0;
-  const hemoglobin = patient.latest_observations?.hemoglobin || 0;
-  const potassium = patient.latest_observations?.potassium || 0;
-  const phosphorus = patient.latest_observations?.phosphorus || 0;
-  const bmi = patient.latest_observations?.BMI || 0;
+  const systolicBP = toNumber(patient.latest_observations?.blood_pressure?.systolic);
+  const diastolicBP = toNumber(patient.latest_observations?.blood_pressure?.diastolic);
+  const hba1c = toNumber(patient.latest_observations?.HbA1c);
+  const hemoglobin = toNumber(patient.latest_observations?.hemoglobin);
+  const potassium = toNumber(patient.latest_observations?.potassium);
+  const phosphorus = toNumber(patient.latest_observations?.phosphorus);
+  const bmi = toNumber(patient.latest_observations?.BMI);
 
   // Get CKD stage as number
   const ckdStageStr = patient.ckd_stage || '1';
