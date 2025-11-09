@@ -54,6 +54,9 @@ function PatientList() {
       // Get all patient IDs
       const patientIds = patients.map(p => p.id);
 
+      console.log('Scanning database with patient IDs:', patientIds);
+      console.log('API URL:', apiUrl);
+
       const response = await fetch(`${apiUrl}/api/analyze/batch`, {
         method: 'POST',
         headers: {
@@ -68,7 +71,10 @@ function PatientList() {
       });
 
       if (!response.ok) {
-        throw new Error(`Database scan failed: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        console.error('Error response:', errorData);
+        const errorMsg = errorData?.error || `Database scan failed: ${response.status}`;
+        throw new Error(errorMsg);
       }
 
       const batchResult = await response.json();
