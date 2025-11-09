@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Patient, PatientListResponse, RiskAssessment, RiskAnalysisResponse } from '../types';
+import { Patient, PatientListResponse, RiskAssessment } from '../types';
 import PatientCard from './PatientCard';
 import RiskAssessmentDisplay from './RiskAssessmentDisplay';
 
