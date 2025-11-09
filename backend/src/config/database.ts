@@ -8,17 +8,26 @@
 import { Pool, QueryResult } from 'pg';
 
 // Database configuration from environment variables
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  database: process.env.DB_NAME || 'healthcare_db',
-  user: process.env.DB_USER || 'healthcare_user',
-  password: process.env.DB_PASSWORD || 'healthcare_password',
-  // Connection pool settings
-  max: parseInt(process.env.DB_POOL_MAX || '10', 10), // Maximum connections in pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 5000, // Return error after 5 seconds if cannot connect
-};
+// Support both DATABASE_URL (Render) and individual vars (local dev)
+const dbConfig = process.env.DATABASE_URL
+  ? {
+      connectionString: process.env.DATABASE_URL,
+      // Connection pool settings
+      max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    }
+  : {
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '5432', 10),
+      database: process.env.DB_NAME || 'healthcare_db',
+      user: process.env.DB_USER || 'healthcare_user',
+      password: process.env.DB_PASSWORD || 'healthcare_password',
+      // Connection pool settings
+      max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    };
 
 // Create connection pool
 const pool = new Pool(dbConfig);
