@@ -8,6 +8,7 @@ import monitoringRoutes from './api/routes/monitoring';
 import notificationRoutes from './api/routes/notifications';
 import ckdDiagnosisRoutes from './api/routes/ckdDiagnosis';
 import uacrMonitoringRoutes from './api/routes/uacrMonitoring';
+import dbInitRoutes from './api/routes/dbInit';
 import { initializeRiskChangeMonitor, stopRiskChangeMonitor } from './services/riskChangeMonitor';
 
 // Load environment variables
@@ -170,6 +171,7 @@ app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ckd-diagnosis', ckdDiagnosisRoutes);
 app.use('/api/uacr-monitoring', uacrMonitoringRoutes);
+app.use('/api/db', dbInitRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
