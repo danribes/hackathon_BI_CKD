@@ -4,6 +4,7 @@ import PatientList from './components/PatientList'
 import HighRiskMonitoringDashboard from './components/HighRiskMonitoringDashboard'
 import NotificationsDashboard from './components/NotificationsDashboard'
 import CKDDiagnosisActionQueue from './components/CKDDiagnosisActionQueue'
+import UACRMonitoringDashboard from './components/UACRMonitoringDashboard'
 
 interface HealthCheckResponse {
   status: string;
@@ -13,7 +14,7 @@ interface HealthCheckResponse {
   environment: string;
 }
 
-type ViewMode = 'patients' | 'monitoring' | 'notifications' | 'ckd-diagnosis';
+type ViewMode = 'patients' | 'monitoring' | 'notifications' | 'ckd-diagnosis' | 'uacr-monitoring';
 
 function App() {
   const [backendHealth, setBackendHealth] = useState<HealthCheckResponse | null>(null);
@@ -165,6 +166,16 @@ function App() {
                   >
                     🏥 CKD Diagnosis
                   </button>
+                  <button
+                    onClick={() => setActiveView('uacr-monitoring')}
+                    className={`flex-1 px-6 py-4 font-semibold transition-colors ${
+                      activeView === 'uacr-monitoring'
+                        ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    📊 uACR Monitoring
+                  </button>
                 </div>
               </div>
 
@@ -192,6 +203,11 @@ function App() {
                 <div className="bg-white rounded-lg shadow-lg p-6">
                   <CKDDiagnosisActionQueue />
                 </div>
+              )}
+
+              {/* uACR Monitoring View */}
+              {activeView === 'uacr-monitoring' && (
+                <UACRMonitoringDashboard />
               )}
             </>
           )}

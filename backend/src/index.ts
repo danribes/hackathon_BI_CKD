@@ -7,6 +7,7 @@ import analyzeRoutes from './api/routes/analyze';
 import monitoringRoutes from './api/routes/monitoring';
 import notificationRoutes from './api/routes/notifications';
 import ckdDiagnosisRoutes from './api/routes/ckdDiagnosis';
+import uacrMonitoringRoutes from './api/routes/uacrMonitoring';
 import { initializeRiskChangeMonitor, stopRiskChangeMonitor } from './services/riskChangeMonitor';
 
 // Load environment variables
@@ -94,6 +95,13 @@ app.get('/api', (_req: Request, res: Response) => {
         patientHistory: 'GET /api/ckd-diagnosis/patient/:patientId/history',
         patientProtocols: 'GET /api/ckd-diagnosis/patient/:patientId/protocols',
         stats: 'GET /api/ckd-diagnosis/stats'
+      },
+      uacrMonitoring: {
+        scan: 'GET /api/uacr-monitoring/scan',
+        patientAlert: 'GET /api/uacr-monitoring/patient/:patientId',
+        critical: 'GET /api/uacr-monitoring/critical',
+        bySeverity: 'GET /api/uacr-monitoring/severity/:severity',
+        stats: 'GET /api/uacr-monitoring/stats'
       }
     }
   });
@@ -161,6 +169,7 @@ app.use('/api/analyze', analyzeRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/ckd-diagnosis', ckdDiagnosisRoutes);
+app.use('/api/uacr-monitoring', uacrMonitoringRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
