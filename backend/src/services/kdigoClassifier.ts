@@ -126,36 +126,36 @@ export function determineRiskLevel(
   riskColor: 'green' | 'yellow' | 'orange' | 'red';
 } {
   // KDIGO Risk Matrix
-  const riskMatrix: Record<string, Record<string, { level: 'low' | 'moderate' | 'high' | 'very_high'; color: 'green' | 'yellow' | 'orange' | 'red' }>> = {
+  const riskMatrix: Record<string, Record<string, { riskLevel: 'low' | 'moderate' | 'high' | 'very_high'; riskColor: 'green' | 'yellow' | 'orange' | 'red' }>> = {
     G1: {
-      A1: { level: 'low', color: 'green' },
-      A2: { level: 'moderate', color: 'yellow' },
-      A3: { level: 'high', color: 'orange' }
+      A1: { riskLevel: 'low', riskColor: 'green' },
+      A2: { riskLevel: 'moderate', riskColor: 'yellow' },
+      A3: { riskLevel: 'high', riskColor: 'orange' }
     },
     G2: {
-      A1: { level: 'low', color: 'green' },
-      A2: { level: 'moderate', color: 'yellow' },
-      A3: { level: 'high', color: 'orange' }
+      A1: { riskLevel: 'low', riskColor: 'green' },
+      A2: { riskLevel: 'moderate', riskColor: 'yellow' },
+      A3: { riskLevel: 'high', riskColor: 'orange' }
     },
     G3a: {
-      A1: { level: 'moderate', color: 'yellow' },
-      A2: { level: 'high', color: 'orange' },
-      A3: { level: 'very_high', color: 'red' }
+      A1: { riskLevel: 'moderate', riskColor: 'yellow' },
+      A2: { riskLevel: 'high', riskColor: 'orange' },
+      A3: { riskLevel: 'very_high', riskColor: 'red' }
     },
     G3b: {
-      A1: { level: 'high', color: 'orange' },
-      A2: { level: 'very_high', color: 'red' },
-      A3: { level: 'very_high', color: 'red' }
+      A1: { riskLevel: 'high', riskColor: 'orange' },
+      A2: { riskLevel: 'very_high', riskColor: 'red' },
+      A3: { riskLevel: 'very_high', riskColor: 'red' }
     },
     G4: {
-      A1: { level: 'very_high', color: 'red' },
-      A2: { level: 'very_high', color: 'red' },
-      A3: { level: 'very_high', color: 'red' }
+      A1: { riskLevel: 'very_high', riskColor: 'red' },
+      A2: { riskLevel: 'very_high', riskColor: 'red' },
+      A3: { riskLevel: 'very_high', riskColor: 'red' }
     },
     G5: {
-      A1: { level: 'very_high', color: 'red' },
-      A2: { level: 'very_high', color: 'red' },
-      A3: { level: 'very_high', color: 'red' }
+      A1: { riskLevel: 'very_high', riskColor: 'red' },
+      A2: { riskLevel: 'very_high', riskColor: 'red' },
+      A3: { riskLevel: 'very_high', riskColor: 'red' }
     }
   };
 

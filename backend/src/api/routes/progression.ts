@@ -8,6 +8,7 @@ import { Router, Request, Response } from 'express';
 import { getPool } from '../../config/database';
 import { runProgressionMonitoring } from '../../services/progressionMonitor';
 import { classifyKDIGOHealthState } from '../../services/kdigoClassifier';
+import { initializeBaseline, generateNextCycle, getProgressionState } from '../../services/dynamicProgressionGenerator';
 
 const router = Router();
 
@@ -203,7 +204,7 @@ router.get('/recommendations', async (req: Request, res: Response): Promise<any>
  * GET /api/progression/summary
  * Get system-wide progression summary
  */
-router.get('/summary', async (req: Request, res: Response): Promise<any> => {
+router.get('/summary', async (_req: Request, res: Response): Promise<any> => {
   try {
     const pool = getPool();
 
@@ -295,7 +296,7 @@ router.get('/summary', async (req: Request, res: Response): Promise<any> => {
  * POST /api/progression/run-monitoring
  * Run the progression monitoring cycle
  */
-router.post('/run-monitoring', async (req: Request, res: Response): Promise<any> => {
+router.post('/run-monitoring', async (_req: Request, res: Response): Promise<any> => {
   try {
     console.log('[Progression API] Starting monitoring cycle...');
 
@@ -458,6 +459,92 @@ router.patch('/recommendations/:recommendationId', async (req: Request, res: Res
     console.error('[Progression API] Error:', error);
     res.status(500).json({
       error: 'Failed to update recommendation',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/progression/patient/:patientId/initialize
+ * Initialize baseline (cycle 0) for a patient
+ */
+router.post('/patient/:patientId/initialize', async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { patientId } = req.params;
+
+    console.log(`[Progression API] Initializing baseline for patient ${patientId}...`);
+
+    const baseline = await initializeBaseline(patientId);
+
+    res.json({
+      status: 'success',
+      message: 'Baseline initialized',
+      cycle: baseline,
+      timestamp: new Date()
+    });
+
+  } catch (error) {
+    console.error('[Progression API] Error:', error);
+    res.status(500).json({
+      error: 'Failed to initialize baseline',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * POST /api/progression/patient/:patientId/next-cycle
+ * Generate the next cycle for a patient
+ * Body: { currentCycle: number }
+ */
+router.post('/patient/:patientId/next-cycle', async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { patientId } = req.params;
+    const { currentCycle } = req.body;
+
+    if (typeof currentCycle !== 'number' || currentCycle < 0 || currentCycle > 23) {
+      return res.status(400).json({ error: 'Invalid currentCycle. Must be between 0 and 23.' });
+    }
+
+    console.log(`[Progression API] Generating cycle ${currentCycle + 1} for patient ${patientId}...`);
+
+    const nextCycle = await generateNextCycle(patientId, currentCycle);
+
+    res.json({
+      status: 'success',
+      message: `Cycle ${nextCycle.cycle_number} generated`,
+      cycle: nextCycle,
+      timestamp: new Date()
+    });
+
+  } catch (error) {
+    console.error('[Progression API] Error:', error);
+    res.status(500).json({
+      error: 'Failed to generate next cycle',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/progression/patient/:patientId/state
+ * Get progression state (progression type, decline rates) for a patient
+ */
+router.get('/patient/:patientId/state', async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { patientId } = req.params;
+
+    const state = await getProgressionState(patientId);
+
+    res.json({
+      status: 'success',
+      progression_state: state
+    });
+
+  } catch (error) {
+    console.error('[Progression API] Error:', error);
+    res.status(500).json({
+      error: 'Failed to get progression state',
       message: error instanceof Error ? error.message : 'Unknown error'
     });
   }

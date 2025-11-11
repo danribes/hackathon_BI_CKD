@@ -11,7 +11,7 @@ interface Patient {
 }
 
 interface HealthState {
-  id: string;
+  id?: string;
   patient_id: string;
   measured_at: string;
   cycle_number: number;
@@ -32,20 +32,12 @@ interface HealthState {
   monitoring_frequency: string;
 }
 
-interface Transition {
-  id: string;
-  from_health_state: string;
-  to_health_state: string;
-  from_egfr: number;
-  to_egfr: number;
-  from_uacr: number | null;
-  to_uacr: number | null;
-  change_type: string;
-  egfr_change: number;
-  uacr_change: number | null;
+interface TransitionDetails {
+  from_state: string;
+  to_state: string;
+  change_type: 'improved' | 'worsened' | 'stable';
   alert_generated: boolean;
-  alert_severity: string;
-  transition_date: string;
+  alert_severity?: 'critical' | 'warning' | 'info';
 }
 
 export default function ProgressionTimeline() {
@@ -54,9 +46,10 @@ export default function ProgressionTimeline() {
   const [currentCycle, setCurrentCycle] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1000); // ms per cycle
-  const [healthStates, setHealthStates] = useState<HealthState[]>([]);
-  const [transitions, setTransitions] = useState<Transition[]>([]);
+  const [healthStates, setHealthStates] = useState<Map<number, HealthState>>(new Map());
+  const [transitions, setTransitions] = useState<Map<number, TransitionDetails>>(new Map());
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const maxCycle = 24;
@@ -80,57 +73,159 @@ export default function ProgressionTimeline() {
     fetchPatients();
   }, []);
 
-  // Fetch progression data when patient changes
+  // Initialize baseline when patient changes
   useEffect(() => {
     if (!selectedPatientId) return;
 
-    const fetchProgression = async () => {
+    const initializePatient = async () => {
       setLoading(true);
       setError(null);
+      setHealthStates(new Map());
+      setTransitions(new Map());
+      setCurrentCycle(0);
+
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const response = await fetch(`${apiUrl}/api/progression/patient/${selectedPatientId}?months=24`);
+
+        // Initialize baseline (cycle 0)
+        const response = await fetch(`${apiUrl}/api/progression/patient/${selectedPatientId}/initialize`, {
+          method: 'POST'
+        });
 
         if (!response.ok) {
-          // If progression data doesn't exist, show message
-          if (response.status === 404) {
-            throw new Error('Progression data not yet generated. Please run the initialization script.');
-          }
-          throw new Error('Failed to fetch progression data');
+          throw new Error('Failed to initialize baseline');
         }
 
         const data = await response.json();
-        setHealthStates(data.progression_history || []);
-        setTransitions(data.transitions || []);
-        setCurrentCycle(data.progression_history?.length > 0 ? data.progression_history.length - 1 : 0);
+        const cycleData = data.cycle;
+
+        // Convert classification to HealthState format
+        const baseline: HealthState = {
+          patient_id: selectedPatientId,
+          measured_at: cycleData.measured_at,
+          cycle_number: cycleData.cycle_number,
+          egfr_value: cycleData.egfr_value,
+          uacr_value: cycleData.uacr_value,
+          gfr_category: cycleData.classification.gfr_category,
+          albuminuria_category: cycleData.classification.albuminuria_category,
+          health_state: cycleData.classification.health_state,
+          risk_level: cycleData.classification.risk_level,
+          risk_color: cycleData.classification.risk_color,
+          ckd_stage: cycleData.classification.ckd_stage,
+          ckd_stage_name: cycleData.classification.ckd_stage_name || `CKD Stage ${cycleData.classification.ckd_stage || 'N/A'}`,
+          requires_nephrology_referral: cycleData.classification.nephrology_referral_needed,
+          requires_dialysis_planning: cycleData.classification.dialysis_planning_needed,
+          recommend_ras_inhibitor: cycleData.classification.treatment_recommendations?.ras_inhibitor || false,
+          recommend_sglt2i: cycleData.classification.treatment_recommendations?.sglt2_inhibitor || false,
+          target_bp: cycleData.classification.treatment_recommendations?.bp_target || '<130/80',
+          monitoring_frequency: cycleData.classification.monitoring_frequency || 'Every 6-12 months'
+        };
+
+        setHealthStates(new Map([[0, baseline]]));
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load progression data');
-        setHealthStates([]);
-        setTransitions([]);
+        setError(err instanceof Error ? err.message : 'Failed to initialize patient');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProgression();
+    initializePatient();
   }, [selectedPatientId]);
 
-  // Auto-play functionality
+  // Generate next cycle when navigating forward
+  const generateNextCycle = async (targetCycle: number): Promise<boolean> => {
+    if (!selectedPatientId) return false;
+    if (healthStates.has(targetCycle)) return true; // Already generated
+
+    const previousCycle = targetCycle - 1;
+    if (!healthStates.has(previousCycle)) {
+      console.error(`Cannot generate cycle ${targetCycle} without cycle ${previousCycle}`);
+      return false;
+    }
+
+    setGenerating(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/progression/patient/${selectedPatientId}/next-cycle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentCycle: previousCycle })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate next cycle');
+      }
+
+      const data = await response.json();
+      const cycleData = data.cycle;
+
+      // Convert to HealthState format
+      const newState: HealthState = {
+        patient_id: selectedPatientId,
+        measured_at: cycleData.measured_at,
+        cycle_number: cycleData.cycle_number,
+        egfr_value: cycleData.egfr_value,
+        uacr_value: cycleData.uacr_value,
+        gfr_category: cycleData.classification.gfr_category,
+        albuminuria_category: cycleData.classification.albuminuria_category,
+        health_state: cycleData.classification.health_state,
+        risk_level: cycleData.classification.risk_level,
+        risk_color: cycleData.classification.risk_color,
+        ckd_stage: cycleData.classification.ckd_stage,
+        ckd_stage_name: cycleData.classification.ckd_stage_name || `CKD Stage ${cycleData.classification.ckd_stage || 'N/A'}`,
+        requires_nephrology_referral: cycleData.classification.nephrology_referral_needed,
+        requires_dialysis_planning: cycleData.classification.dialysis_planning_needed,
+        recommend_ras_inhibitor: cycleData.classification.treatment_recommendations?.ras_inhibitor || false,
+        recommend_sglt2i: cycleData.classification.treatment_recommendations?.sglt2_inhibitor || false,
+        target_bp: cycleData.classification.treatment_recommendations?.bp_target || '<130/80',
+        monitoring_frequency: cycleData.classification.monitoring_frequency || 'Every 6-12 months'
+      };
+
+      // Store new state
+      setHealthStates(prev => new Map(prev).set(targetCycle, newState));
+
+      // Store transition if detected
+      if (cycleData.transition_detected && cycleData.transition_details) {
+        setTransitions(prev => new Map(prev).set(targetCycle, cycleData.transition_details));
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error generating next cycle:', err);
+      setError(err instanceof Error ? err.message : 'Failed to generate next cycle');
+      return false;
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Auto-play functionality with dynamic generation
   useEffect(() => {
     if (!isPlaying) return;
 
-    const interval = setInterval(() => {
-      setCurrentCycle((prev) => {
-        if (prev >= maxCycle) {
-          setIsPlaying(false);
-          return maxCycle;
-        }
-        return prev + 1;
-      });
-    }, playbackSpeed);
+    const advance = async () => {
+      if (currentCycle >= maxCycle) {
+        setIsPlaying(false);
+        return;
+      }
 
+      const nextCycle = currentCycle + 1;
+
+      // Generate next cycle if needed
+      if (!healthStates.has(nextCycle)) {
+        const success = await generateNextCycle(nextCycle);
+        if (!success) {
+          setIsPlaying(false);
+          return;
+        }
+      }
+
+      setCurrentCycle(nextCycle);
+    };
+
+    const interval = setInterval(advance, playbackSpeed);
     return () => clearInterval(interval);
-  }, [isPlaying, playbackSpeed, maxCycle]);
+  }, [isPlaying, currentCycle, playbackSpeed, maxCycle, healthStates, selectedPatientId]);
 
   const handlePlayPause = () => {
     if (currentCycle >= maxCycle) {
@@ -144,8 +239,17 @@ export default function ProgressionTimeline() {
     setIsPlaying(false);
   };
 
-  const handleNextCycle = () => {
-    setCurrentCycle((prev) => Math.min(maxCycle, prev + 1));
+  const handleNextCycle = async () => {
+    if (currentCycle >= maxCycle) return;
+
+    const nextCycle = currentCycle + 1;
+
+    // Generate next cycle if needed
+    if (!healthStates.has(nextCycle)) {
+      await generateNextCycle(nextCycle);
+    }
+
+    setCurrentCycle(nextCycle);
     setIsPlaying(false);
   };
 
@@ -154,18 +258,33 @@ export default function ProgressionTimeline() {
     setIsPlaying(false);
   };
 
-  const handleLastCycle = () => {
+  const handleLastCycle = async () => {
+    // Generate all cycles up to maxCycle
+    for (let cycle = currentCycle + 1; cycle <= maxCycle; cycle++) {
+      if (!healthStates.has(cycle)) {
+        await generateNextCycle(cycle);
+      }
+    }
     setCurrentCycle(maxCycle);
     setIsPlaying(false);
   };
 
-  const currentState = healthStates.find(s => s.cycle_number === currentCycle);
-  const previousState = healthStates.find(s => s.cycle_number === currentCycle - 1);
-  const transitionAtCycle = transitions.find(t => {
-    const transDate = new Date(t.transition_date);
-    const currDate = currentState ? new Date(currentState.measured_at) : null;
-    return currDate && Math.abs(transDate.getTime() - currDate.getTime()) < 86400000; // Within 1 day
-  });
+  const handleSliderChange = async (newCycle: number) => {
+    // If moving forward, generate cycles as needed
+    if (newCycle > currentCycle) {
+      for (let cycle = currentCycle + 1; cycle <= newCycle; cycle++) {
+        if (!healthStates.has(cycle)) {
+          await generateNextCycle(cycle);
+        }
+      }
+    }
+    setCurrentCycle(newCycle);
+    setIsPlaying(false);
+  };
+
+  const currentState = healthStates.get(currentCycle);
+  const previousState = healthStates.get(currentCycle - 1);
+  const transitionAtCycle = transitions.get(currentCycle);
 
   const selectedPatient = patients.find(p => p.id === selectedPatientId);
 
@@ -201,7 +320,7 @@ export default function ProgressionTimeline() {
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg p-6">
         <h2 className="text-3xl font-bold mb-2">📈 CKD Progression Timeline</h2>
         <p className="text-indigo-100">
-          Navigate through 24 months of patient progression data and visualize health state transitions
+          Navigate through 24 months of patient progression data - each cycle generates dynamically with AI-powered monitoring
         </p>
       </div>
 
@@ -230,13 +349,8 @@ export default function ProgressionTimeline() {
               <span className="text-2xl">⚠️</span>
             </div>
             <div className="ml-3">
-              <h3 className="text-red-800 font-semibold">Error Loading Progression Data</h3>
+              <h3 className="text-red-800 font-semibold">Error</h3>
               <p className="text-red-700 mt-1">{error}</p>
-              {error.includes('not yet generated') && (
-                <p className="text-red-600 mt-2 text-sm">
-                  Run: <code className="bg-red-100 px-2 py-1 rounded">psql $DATABASE_URL -f scripts/initialize_progression_tracking.sql</code>
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -245,18 +359,32 @@ export default function ProgressionTimeline() {
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          <span className="ml-4 text-gray-600">Loading progression data...</span>
+          <span className="ml-4 text-gray-600">Initializing patient progression...</span>
         </div>
       )}
 
-      {!loading && !error && healthStates.length > 0 && (
+      {!loading && !error && healthStates.size > 0 && (
         <>
           {/* Timeline Controls */}
           <div className="bg-white rounded-lg shadow-lg p-6">
+            {generating && (
+              <div className="mb-4 bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                <div className="flex items-center text-indigo-800">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600 mr-2"></div>
+                  <span className="text-sm font-medium">Generating progression data with AI monitoring...</span>
+                </div>
+              </div>
+            )}
+
             <div className="mb-4">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700">
                   Month {currentCycle} of {maxCycle}
+                  {healthStates.size < maxCycle + 1 && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({healthStates.size} / {maxCycle + 1} cycles generated)
+                    </span>
+                  )}
                 </span>
                 <span className="text-sm text-gray-600">
                   {currentState ? new Date(currentState.measured_at).toLocaleDateString() : 'N/A'}
@@ -276,10 +404,7 @@ export default function ProgressionTimeline() {
                 {[0, 6, 12, 18, 24].map((marker) => (
                   <button
                     key={marker}
-                    onClick={() => {
-                      setCurrentCycle(marker);
-                      setIsPlaying(false);
-                    }}
+                    onClick={() => handleSliderChange(marker)}
                     className="absolute transform -translate-x-1/2 text-xs text-gray-600 hover:text-indigo-600 font-medium"
                     style={{ left: `${(marker / maxCycle) * 100}%` }}
                   >
@@ -295,18 +420,16 @@ export default function ProgressionTimeline() {
               min="0"
               max={maxCycle}
               value={currentCycle}
-              onChange={(e) => {
-                setCurrentCycle(parseInt(e.target.value));
-                setIsPlaying(false);
-              }}
+              onChange={(e) => handleSliderChange(parseInt(e.target.value))}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+              disabled={generating}
             />
 
             {/* Control Buttons */}
             <div className="flex items-center justify-center gap-2 mt-6">
               <button
                 onClick={handleFirstCycle}
-                disabled={currentCycle === 0}
+                disabled={currentCycle === 0 || generating}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="First cycle"
               >
@@ -315,7 +438,7 @@ export default function ProgressionTimeline() {
 
               <button
                 onClick={handlePreviousCycle}
-                disabled={currentCycle === 0}
+                disabled={currentCycle === 0 || generating}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Previous month"
               >
@@ -324,7 +447,8 @@ export default function ProgressionTimeline() {
 
               <button
                 onClick={handlePlayPause}
-                className="p-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+                disabled={generating}
+                className="p-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors disabled:opacity-50"
                 title={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
@@ -332,7 +456,7 @@ export default function ProgressionTimeline() {
 
               <button
                 onClick={handleNextCycle}
-                disabled={currentCycle === maxCycle}
+                disabled={currentCycle === maxCycle || generating}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Next month"
               >
@@ -341,7 +465,7 @@ export default function ProgressionTimeline() {
 
               <button
                 onClick={handleLastCycle}
-                disabled={currentCycle === maxCycle}
+                disabled={currentCycle === maxCycle || generating}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title="Last cycle"
               >
@@ -362,7 +486,8 @@ export default function ProgressionTimeline() {
                   <button
                     key={value}
                     onClick={() => setPlaybackSpeed(value)}
-                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                    disabled={generating}
+                    className={`px-3 py-1 rounded text-sm font-medium transition-colors disabled:opacity-50 ${
                       playbackSpeed === value
                         ? 'bg-indigo-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -477,22 +602,15 @@ export default function ProgressionTimeline() {
                         transitionAtCycle.alert_severity === 'warning' ? 'text-orange-800' :
                         'text-blue-800'
                       }`}>
-                        State Transition Detected
+                        AI Detected State Transition
                       </h4>
                       <p className={`text-sm ${
                         transitionAtCycle.alert_severity === 'critical' ? 'text-red-700' :
                         transitionAtCycle.alert_severity === 'warning' ? 'text-orange-700' :
                         'text-blue-700'
                       }`}>
-                        Health state changed from <strong>{transitionAtCycle.from_health_state}</strong> to{' '}
-                        <strong>{transitionAtCycle.to_health_state}</strong>
-                      </p>
-                      <p className={`text-sm mt-1 ${
-                        transitionAtCycle.alert_severity === 'critical' ? 'text-red-700' :
-                        transitionAtCycle.alert_severity === 'warning' ? 'text-orange-700' :
-                        'text-blue-700'
-                      }`}>
-                        eGFR: {transitionAtCycle.from_egfr.toFixed(1)} → {transitionAtCycle.to_egfr.toFixed(1)} ({transitionAtCycle.egfr_change > 0 ? '+' : ''}{transitionAtCycle.egfr_change.toFixed(1)})
+                        Health state changed from <strong>{transitionAtCycle.from_state}</strong> to{' '}
+                        <strong>{transitionAtCycle.to_state}</strong> ({transitionAtCycle.change_type})
                       </p>
                     </div>
                   </div>
@@ -553,7 +671,7 @@ export default function ProgressionTimeline() {
           )}
 
           {/* Mini Chart */}
-          {healthStates.length > 0 && (
+          {healthStates.size > 1 && (
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-bold text-gray-900 mb-4">eGFR Trend</h3>
               <div className="relative h-32">
@@ -573,9 +691,10 @@ export default function ProgressionTimeline() {
 
                   {/* eGFR line */}
                   <polyline
-                    points={healthStates
-                      .map((state, idx) => {
-                        const x = (idx / maxCycle) * 1000;
+                    points={Array.from(healthStates.entries())
+                      .sort((a, b) => a[0] - b[0])
+                      .map(([cycle, state]) => {
+                        const x = (cycle / maxCycle) * 1000;
                         const y = 100 - ((state.egfr_value / 100) * 100);
                         return `${x},${y}`;
                       })
@@ -596,8 +715,8 @@ export default function ProgressionTimeline() {
                       strokeWidth="2"
                     />
                   )}
-                </polyline>
-              </svg>
+                </svg>
+              </div>
               <div className="flex justify-between text-xs text-gray-600 mt-2">
                 <span>Month 0</span>
                 <span>Month 24</span>
@@ -605,25 +724,6 @@ export default function ProgressionTimeline() {
             </div>
           )}
         </>
-      )}
-
-      {!loading && !error && healthStates.length === 0 && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-2xl">⚠️</span>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-yellow-800 font-semibold">No Progression Data Available</h3>
-              <p className="text-yellow-700 mt-1">
-                Please initialize the progression tracking system to view timeline data.
-              </p>
-              <p className="text-yellow-600 mt-2 text-sm font-mono">
-                psql $DATABASE_URL -f scripts/initialize_progression_tracking.sql
-              </p>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

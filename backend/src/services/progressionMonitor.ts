@@ -8,7 +8,7 @@
  */
 
 import { getPool } from '../config/database';
-import { classifyKDIGOHealthState, compareHealthStates, KDIGOClassification } from './kdigoClassifier';
+import { classifyKDIGOHealthState, KDIGOClassification } from './kdigoClassifier';
 
 interface StateTransition {
   id: string;
@@ -31,6 +31,8 @@ interface PatientInfo {
   first_name: string;
   last_name: string;
   date_of_birth: Date;
+  on_ras_inhibitor?: boolean;
+  on_sglt2i?: boolean;
 }
 
 /**
@@ -389,7 +391,7 @@ export async function generateActionRecommendations(
  * Build recommendations based on KDIGO guidelines
  */
 function buildRecommendations(
-  transition: StateTransition & { on_ras_inhibitor: boolean; on_sglt2i: boolean },
+  transition: StateTransition & { on_ras_inhibitor?: boolean; on_sglt2i?: boolean },
   currentState: KDIGOClassification
 ): Array<{
   type: string;
